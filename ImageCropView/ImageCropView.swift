@@ -120,15 +120,37 @@ public class ImageCropView: UIScrollView, UIScrollViewDelegate, UIGestureRecogni
     
     
     /**
-    Crop the image using the ImageCropView bounds and scale factor
-
-    - returns: the cropped image
-    */
+     Crop the image using the ImageCropView bounds and scale factor
+     
+     - returns: the cropped image
+     */
     public func croppedImage() -> UIImage? {
-        let tmp = CGImageCreateWithImageInRect(coverImageView.image?.CGImage, cropRect())
+        var rectTransform:CGAffineTransform?
+        switch (coverImageView.image!.imageOrientation)
+        {
+        case UIImageOrientation.Left:
+            rectTransform = CGAffineTransformTranslate(CGAffineTransformMakeRotation(rad(90)), 0, -coverImageView.image!.size.height)
+            break
+        case UIImageOrientation.Right:
+            rectTransform = CGAffineTransformTranslate(CGAffineTransformMakeRotation(rad(-90)), -coverImageView.image!.size.width, 0)
+            break
+        case UIImageOrientation.Down:
+            rectTransform = CGAffineTransformTranslate(CGAffineTransformMakeRotation(rad(-180)), -coverImageView.image!.size.width, -coverImageView.image!.size.height)
+            break
+        default:
+            rectTransform = CGAffineTransformIdentity
+        }
+        
+        rectTransform = CGAffineTransformScale(rectTransform!, coverImageView.image!.scale, coverImageView.image!.scale);
+        let tmp = CGImageCreateWithImageInRect(coverImageView.image?.CGImage, CGRectApplyAffineTransform(cropRect(), rectTransform!))
+        
         let img = UIImage(CGImage: tmp!, scale: coverImageView.image!.scale, orientation: coverImageView.image!.imageOrientation)
         
         return img
+    }
+    
+    private func rad(deg:CGFloat) -> CGFloat {
+        return deg / 180.0 * CGFloat(M_PI)
     }
 
     /**
